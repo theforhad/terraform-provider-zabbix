@@ -6,7 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/tpretz/go-zabbix-api"
+	//"/mnt/c/gopath/src/github.com/tpretz/go-zabbix-api"
 )
 
 // template resource function
@@ -56,6 +58,25 @@ func resourceTemplate() *schema.Resource {
 				Description: "linked templates",
 			},
 			"macro": macroListSchema,
+			"tag": &schema.Schema{
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": &schema.Schema{
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotWhiteSpace,
+							Description:  "Tag Key",
+						},
+						"value": &schema.Schema{
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Tag Value",
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -194,7 +215,7 @@ func buildTemplateObject(d *schema.ResourceData) *zabbix.Template {
 		Groups:          buildHostGroupIds(d.Get("groups").(*schema.Set)),
 		LinkedTemplates: buildTemplateIds(d.Get("templates").(*schema.Set)),
 	}
-
+	item.Tags = tagGenerate(d)
 	item.UserMacros = macroGenerate(d)
 	return &item
 }
@@ -213,7 +234,7 @@ func resourceTemplateUpdate(d *schema.ResourceData, m interface{}) error {
 
 		// removals, we need to unlink and clear
 		if diff.Len() > 0 {
-			item.TemplatesClear = buildTemplateIds(diff)
+			item.TemplatesClear= buildTemplateIds(diff)
 		}
 	}
 

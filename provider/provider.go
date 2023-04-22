@@ -55,6 +55,7 @@ func Provider() *schema.Provider {
 			"zabbix_proxy":       dataProxy(),
 			"zabbix_hostgroup":   dataHostgroup(),
 			"zabbix_template":    dataTemplate(),
+			"zabbix_httptest":    dataHttpTest(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"zabbix_trigger":       resourceTrigger(),
@@ -63,6 +64,7 @@ func Provider() *schema.Provider {
 			"zabbix_hostgroup":     resourceHostgroup(),
 			"zabbix_host":          resourceHost(),
 			"zabbix_application":   resourceApplication(),
+			"zabbix_httptest":   resourceHttpTest(),
 
 			"zabbix_graph":       resourceGraph(),
 			"zabbix_proto_graph": resourceProtoGraph(),
@@ -191,6 +193,51 @@ func tagGenerate(d *schema.ResourceData) (tags zabbix.Tags) {
 		}
 	}
 
+	return
+}
+
+func stepGenerate(d *schema.ResourceData) (steps zabbix.Steps) {
+	log.Trace("STEP!!!!!!!!!!!!!!!!!!!!LOADING STEPS")
+	set := d.Get("step").([]interface{})
+	//set := d.Get("step")
+	//for _,item:=range set :
+	
+
+
+	log.Trace("SET!!!!!!!!!!!!!!!!!!!! %v",set)
+	steps = make(zabbix.Steps, len(set))
+  
+	log.Trace("STEPS!!!!!!!!!!!!!!!!!!!! %v",steps)
+	for i := 0; i < len(set); i++ {
+		current := set[i].(map[string]interface{})
+
+		log.Trace("CURRENT!!!!!!! %v", current)
+		//step_no, _ := strconv.Atoi(current["no"].(string))
+		headers := make(zabbix.Headers, len(current["header"].([]interface{})))
+		log.Trace("HEADERS!!!!!!! %v", headers)
+		for j := 0; j < len(headers); j++ {
+			log.Trace("HEADER count!!!!!!! %v", j)
+			log.Trace("CURRENT HEADER!!!!!!! %v", current["header"])
+			headerList := current["header"].([]interface{})
+			log.Trace("HEADERLIST!!!!!!! %v", headerList)	
+			current_headers := headerList[j].(map[string]interface{})
+			log.Trace("ACTIVE HEADER!!!!!!! %v", current_headers)
+			headers[j] = zabbix.Header{
+				Name:   current_headers["name"].(string),
+				Value:  current_headers["value"].(string),
+			}
+		}
+
+		steps[i] = zabbix.Step{
+			Name:   current["name"].(string),
+			Url: current["url"].(string),
+			StatusCodes: current["status_codes"].(string),
+			FollowRedirects: current["follow_redirects"].(string),
+			No: current["no"].(string),
+			Headers: headers,
+		}
+	}
+	//log.Trace("STEP!!!!!!!!!!!!!!!!!!!!: %+v", steps)
 	return
 }
 
