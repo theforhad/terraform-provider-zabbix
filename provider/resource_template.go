@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/tpretz/go-zabbix-api"
-	//"/mnt/c/gopath/src/github.com/tpretz/go-zabbix-api"
 )
 
 // template resource function
@@ -129,8 +128,6 @@ func resourceTemplateCreate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	log.Trace("crated template: %+v", items[0])
-
 	d.SetId(items[0].TemplateID)
 
 	return resourceTemplateRead(d, m)
@@ -157,15 +154,13 @@ func dataTemplateRead(d *schema.ResourceData, m interface{}) error {
 	if len(params["filter"].(map[string]interface{})) < 1 {
 		return errors.New("no filter parameters provided")
 	}
-	log.Debug("Lookup of template with: %#v", params)
 
 	return templateRead(d, m, params)
 }
 
 // terraform template read handler (resource)
 func resourceTemplateRead(d *schema.ResourceData, m interface{}) error {
-	log.Debug("Lookup of template with id %s", d.Id())
-
+	
 	return templateRead(d, m, zabbix.Params{
 		"templateids":           d.Id(),
 		"selectMacros":          "extend",
@@ -192,8 +187,6 @@ func templateRead(d *schema.ResourceData, m interface{}, params zabbix.Params) e
 		return errors.New("multiple templates found")
 	}
 	t := templates[0]
-
-	log.Debug("Got template: %+v", t)
 
 	d.Set("description", t.Description)
 	d.Set("host", t.Host)
