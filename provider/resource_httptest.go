@@ -107,20 +107,14 @@ func dataHttpTest() *schema.Resource {
 
 // terraform resource create handler
 func resourceHttpTestCreate(d *schema.ResourceData, m interface{}) error {
-	log.Trace("CREATING: BEGINING OF ALL THINGS")
 	api := m.(*zabbix.API)
-	log.Trace("CREATING: API CONNECTION ESTABLISHED")
 	item := buildHttpTestObject(d)
-	log.Trace("CREATING: BUILD HTTPTEST OBJECT")
 	items := []zabbix.HttpTest{*item}
-	log.Trace("CREATING: %+v", items[0])
 	err := api.HttpTestCreate(items)
 
 	if err != nil {
 		return err
 	}
-
-	log.Trace("created httptest: %+v", items[0])
 
 	d.SetId(items[0].HttpTestId)
 
@@ -142,14 +136,12 @@ func dataHttpTestRead(d *schema.ResourceData, m interface{}) error {
 	if len(params["filter"].(map[string]interface{})) < 1 {
 		return errors.New("no filter parameters provided")
 	}
-	log.Debug("Lookup of httptest with: %#v", params)
 
 	return httpTestRead(d, m, params)
 }
 
 // terraform template read handler (resource)
 func resourceHttpTestRead(d *schema.ResourceData, m interface{}) error {
-	log.Debug("Lookup of HttpTest with id %s", d.Id())
 
 	return httpTestRead(d, m, zabbix.Params{
 		"httptestids":           d.Id(),
@@ -176,8 +168,6 @@ func httpTestRead(d *schema.ResourceData, m interface{}, params zabbix.Params) e
 	}
 	t := httptests[0]
 
-	log.Debug("Got httptest: %+v", t)
-
 	d.Set("name", t.Name)
 	d.Set("template", t.HostId)
 	d.SetId(t.HttpTestId)
@@ -192,9 +182,7 @@ func buildHttpTestObject(d *schema.ResourceData) *zabbix.HttpTest {
 		Name:     d.Get("name").(string),
 		HostId: 	d.Get("template").(string),
 	}
-	log.Trace("BUILDING!!!!")
 	item.Steps = stepGenerate(d)
-	log.Trace("BUILDING!!!!: %v",item.Steps)
 	return &item
 }
 
@@ -203,18 +191,13 @@ func buildHttpTestObjectUpdate(d *schema.ResourceData) *zabbix.HttpTest {
 	
 	item := zabbix.HttpTest{
 		Name:     d.Get("name").(string),
-		//HostId: 	d.Get("template").(string),
 	}
-	log.Trace("UPDATE BUILDING!!!!")
 	item.Steps = stepGenerate(d)
-	log.Trace("UPDATING BUILDING!!!!: %v",item.Steps)
 	return &item
 }
 
 // terraform update resource handler
-
 func resourceHttpTestUpdate(d *schema.ResourceData, m interface{}) error {
-	log.Trace("UPDATING: The start")
 	api := m.(*zabbix.API)
 
 	item := buildHttpTestObjectUpdate(d)
@@ -232,9 +215,8 @@ func resourceHttpTestUpdate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	items := []zabbix.HttpTest{*item}
-
+	
 	err := api.HttpTestUpdate(items)
-
 	if err != nil {
 		return err
 	}
